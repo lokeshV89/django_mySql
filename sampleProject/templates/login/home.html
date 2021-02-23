@@ -1,0 +1,191 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        /* background-color: #007bff; */
+        height: 100vh;
+    }
+
+    #login .container #login-row #login-column #login-box {
+        margin-top: 120px;
+        max-width: 600px;
+        height: 320px;
+        border: 1px solid #9C9C9C;
+        background-color: #EAEAEA;
+    }
+
+    #login .container #login-row #login-column #login-box #login-form {
+        padding: 20px;
+    }
+
+    #login .container #login-row #login-column #login-box #login-form #register-link {
+        margin-top: -85px;
+    }
+
+</style>
+
+<div class="container-fluid wrapper hold-transition">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card  mb-3 mt-3 e-4">
+                <div class="card-header bg-info">
+                    <div class="row">
+                        <div class="col-10">
+                            <h4>Welcome {{user.username}}</h4>
+                        </div>
+                        <div class="col-1">
+                            <a href="logout"><button type="button"
+                                    class="btn btn-warning pull-right">logout</button></a>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="card-body">
+                    <div class="container-fluid mt-3">
+                        <h6><b><u>Upload Files(*Only .doc .xls .pdf and image files are allowed)</u></b></h6>
+                        <form method="post" action="/upload_doc" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-2">
+                                    <label class="custom-file-label" for="customFile">Choose files To Upload :</label>
+                                </div>
+                                <div class="col-8">
+                                    <input type="file" class="form-control" id="customFile" name="docfile" required>
+                                </div>
+
+                                <div class="col-1">
+                                    <button id="submit" type="submit" class="btn btn-primary pull-right">Upload</button>
+                                </div>
+                            </div>
+
+                            <br><br>
+                        </form>
+
+                        <!-- datatable-->
+                        <div class="card">
+                            <div class="card border-light mb-3">
+                                <h3 class="card-header">Uploaded files</h3>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="card-body">
+                                <table id="example1" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>File Details</th>
+                                            <th>Size</th>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        {% for document in documents %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ document.docfile.url }}" target="_blank" download>
+                                                    {{ document.docfile.name }}
+                                                </a>
+                                            </td>
+                                            <td>{% widthratio document.docfile.size 1024 1 %} KB</td>
+                                            <td>{{ document.date }}</td>
+                                            <td>{{ document.extension }}</td>
+                                            <td><button class="btn btn-sm btn-danger"
+                                                    onclick="del('{{document.id}}')"><i
+                                                        class="fa fa-trash"></i></button></td>
+                                        </tr>
+                                        {% endfor %}
+
+                                </table>
+
+                            </div>
+                        </div>
+                        <br>
+                        <!-- end of datatable -->
+                    </div>
+                </div>
+                <div class="card-footer bg-info">
+                    <center>
+                        Sample upload page
+                    </center>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- SCRIPTS -->
+<script>
+    $(function () {
+        //swal("Hello world!");
+    });
+
+    function del(a) {
+        swal({
+            title: "Are you sure?",
+            text: "You will not be able to recover deleted file!",
+            icon: "warning",
+            buttons: [
+                'No, cancel it!',
+                'Yes, I am sure!'
+            ],
+            dangerMode: true,
+        }).then(function (isConfirm) {
+            if (isConfirm) {
+                swal({
+                    title: 'Success!',
+                    text: 'File will be deleted!',
+                    icon: 'success'
+                }).then(function () {
+                    window.location.href = "/delete_doc?id=" + a;
+                });
+            } else {
+                swal("Cancelled", "Your file is safe :)", "error");
+            }
+        })
+
+
+
+    }
+
+
+    /* FILE VALIDATION */
+    $('#submit').prop("disabled", true);
+    var a = 0;
+    //binds to onchange event of your input field
+    $('#customFile').bind('change', function () {
+        if ($('#submit').attr('disabled', false)) {
+            $('#submit').attr('disabled', true);
+        }
+        var ext = $('#customFile').val().split('.').pop().toLowerCase();
+        if ($.inArray(ext, ['txt', 'gif', 'png', 'jpg', 'jpeg', 'xls', 'xslx', 'doc', 'docx', 'pdf']) == -1) {
+            a = 0;
+        } else {
+            var picsize = (this.files[0].size);
+            if (picsize > 15728640) {
+                a = 0;
+            } else {
+                a = 1;
+            }
+
+
+        }
+
+        if (a == 1) {
+            $('#submit').attr('disabled', false);
+            swal("Good job!", "Selected files satisfies the conditions", "success");
+        }
+        else {
+            swal("Error!", "File should be in mentioned format and less then 15MB", "error");
+
+        }
+    });
+
+</script>
+{% endblock content %}
